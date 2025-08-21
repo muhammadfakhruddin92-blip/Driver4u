@@ -19,17 +19,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-          cache: 'pip'
-
-      - name: Cache Buildozer dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.buildozer
-            ~/.local/lib/python3.10/site-packages
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-buildozer-
+          # Remove cache setting since we don't have requirements.txt
 
       - name: Install system dependencies
         run: |
@@ -50,20 +40,39 @@ jobs:
             autoconf \
             automake \
             libtool \
-            pkg-config
+            pkg-config \
+            zlib1g-dev
 
       - name: Install Buildozer and dependencies
         run: |
           pip install --upgrade pip
           pip install cython==0.29.36 buildozer==1.5.0
 
-      - name: Build APK
+      - name: Initialize Buildozer if needed
         run: |
-          # Only initialize if buildozer.spec doesn't exist
           if [ ! -f buildozer.spec ]; then
             buildozer init
+            echo "Created default buildozer.spec file"
+          else
+            echo "Using existing buildozer.spec file"
           fi
+
+      - name: Build APK
+        run: |
           buildozer -v android debug
+        env:
+          # Set environment variables to avoid interactive prompts
+          CI: true
+          BUILDOLDER_NO_UPDATE: true
+
+      - name: Check if APK was created
+        run: |
+          if ls bin/*.apk 2>/dev/null; then
+            echo "APK built successfully"
+          else
+            echo "Error: No APK file found in bin directory"
+            exit 1
+          fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -72,7 +81,7 @@ jobs:
           path: bin/*.apk
           retention-days: 7
 
-      - name: Clean up (optional)
+      - name: Clean up
         if: always()
         run: |
           # Clean up to save space
