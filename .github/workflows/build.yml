@@ -43,6 +43,9 @@ jobs:
             pkg-config \
             zlib1g-dev
 
+      - name: Install Android SDK Build-Tools
+        run: sdkmanager "build-tools;34.0.0"
+
       - name: Install Buildozer and dependencies
         run: |
           pip install --upgrade pip
