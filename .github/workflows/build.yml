@@ -19,7 +19,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-          # Remove cache setting since we don't have requirements.txt
 
       - name: Install system dependencies
         run: |
@@ -43,8 +42,26 @@ jobs:
             pkg-config \
             zlib1g-dev
 
+      - name: Install Android SDK Command Line Tools
+        run: |
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          cd $HOME/android-sdk
+          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+          unzip cmdline-tools.zip -d cmdline-tools
+          mv cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+        env:
+          ANDROID_HOME: $HOME/android-sdk
+
+      - name: Set up Android SDK environment
+        run: |
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
+          echo "$HOME/android-sdk/build-tools/34.0.0" >> $GITHUB_PATH
+
       - name: Install Android SDK Build-Tools
-        run: sdkmanager "build-tools;34.0.0"
+        run: |
+          sdkmanager --sdk_root=$HOME/android-sdk "platform-tools" "build-tools;34.0.0"
 
       - name: Install Buildozer and dependencies
         run: |
@@ -64,7 +81,6 @@ jobs:
         run: |
           buildozer -v android debug
         env:
-          # Set environment variables to avoid interactive prompts
           CI: true
           BUILDOZER_NO_UPDATE: true
 
@@ -87,5 +103,4 @@ jobs:
       - name: Clean up
         if: always()
         run: |
-          # Clean up to save space
           buildozer android clean || true
