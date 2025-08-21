@@ -16,14 +16,31 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3-pip openjdk-17-jdk unzip git
-          pip install buildozer cython virtualenv
+          sudo apt install -y \
+            python3-pip \
+            python3-setuptools \
+            git \
+            zip \
+            unzip \
+            openjdk-17-jdk \
+            libffi-dev \
+            libssl-dev \
+            liblzma-dev \
+            libbz2-dev \
+            libreadline-dev \
+            libsqlite3-dev
+
+      - name: Install Buildozer
+        run: |
+          pip install --upgrade pip
+          pip install cython buildozer
 
       - name: Build APK
         run: |
+          buildozer init || true
           buildozer -v android debug
 
       - name: Upload APK Artifact
