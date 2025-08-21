@@ -1,0 +1,49 @@
+
+<Driver4UWidget>:
+    orientation: "vertical"
+    padding: 20
+    spacing: 15
+
+    Label:
+        text: "Driver4U"
+        font_size: 32
+        bold: True
+        color: 0, 0.5, 0.5, 1
+        size_hint_y: None
+        height: self.texture_size[1] + 20
+
+    TextInput:
+        id: passenger
+        hint_text: "Passenger Name"
+        multiline: False
+
+    TextInput:
+        id: pickup
+        hint_text: "Pickup Location"
+        multiline: False
+
+    TextInput:
+        id: destination
+        hint_text: "Destination"
+        multiline: False
+
+    TextInput:
+        id: fare
+        hint_text: "Fare per KM (RM)"
+        input_filter: "float"
+        multiline: False
+
+    Button:
+        text: "Calculate Fare"
+        size_hint_y: None
+        height: 50
+        background_color: 0, 0.6, 0.5, 1
+        on_release:
+            root.calculate_fare(passenger.text, pickup.text, destination.text, fare.text)
+
+    Label:
+        text: root.result_text
+        font_size: 16
+        halign: "left"
+        valign: "top"
+        text_size: self.width, None
