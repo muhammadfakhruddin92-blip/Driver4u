@@ -2,6 +2,10 @@ name: Build APK with Buildozer
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
   build:
@@ -15,6 +19,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+          cache: 'pip'
+
+      - name: Cache Buildozer dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.buildozer
+            ~/.local/lib/python3.10/site-packages
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
 
       - name: Install system dependencies
         run: |
@@ -31,20 +46,34 @@ jobs:
             liblzma-dev \
             libbz2-dev \
             libreadline-dev \
-            libsqlite3-dev
+            libsqlite3-dev \
+            autoconf \
+            automake \
+            libtool \
+            pkg-config
 
-      - name: Install Buildozer
+      - name: Install Buildozer and dependencies
         run: |
           pip install --upgrade pip
           pip install cython==0.29.36 buildozer==1.5.0
 
       - name: Build APK
         run: |
-          buildozer init || true
+          # Only initialize if buildozer.spec doesn't exist
+          if [ ! -f buildozer.spec ]; then
+            buildozer init
+          fi
           buildozer -v android debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Driver4U-debug-apk
-          path: bin/*.apk
+          path: bin/*.apk
+          retention-days: 7
+
+      - name: Clean up (optional)
+        if: always()
+        run: |
+          # Clean up to save space
+          buildozer android clean || true
