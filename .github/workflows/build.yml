@@ -1,36 +1,33 @@
-
 name: Build APK with Buildozer
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk
-        sudo apt install -y zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev
-        pip install --upgrade pip
-        pip install buildozer cython virtualenv
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-    - name: Build APK
-      run: |
-        buildozer init
-        cp buildozer.spec buildozer.spec.bak
-        mv buildozer.spec.bak buildozer.spec
-        buildozer -v android debug
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip openjdk-17-jdk unzip git
+          pip install buildozer cython virtualenv
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v3
-      with:
-        name: Driver4U-debug-apk
-        path: bin/*.apk
+      - name: Build APK
+        run: |
+          buildozer -v android debug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Driver4U-debug-apk
+          path: bin/*.apk
