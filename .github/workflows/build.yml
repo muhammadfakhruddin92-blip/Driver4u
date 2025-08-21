@@ -63,7 +63,7 @@ jobs:
         env:
           # Set environment variables to avoid interactive prompts
           CI: true
-          BUILDOLDER_NO_UPDATE: true
+          BUILDOZER_NO_UPDATE: true
 
       - name: Check if APK was created
         run: |
@@ -85,4 +85,4 @@ jobs:
         if: always()
         run: |
           # Clean up to save space
-          buildozer android clean || true
+          buildozer android clean || true
